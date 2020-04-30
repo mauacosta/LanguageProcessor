@@ -222,6 +222,79 @@ def convertToNDFA(language, processor, nodesList):
     convertToDFA(language, ndfaProcessor, nodesList)
 
 
+def nodeNdfaToDfa(stateName, states):
+    stateName = {
+        stateName: states
+    }
+    return stateName
+
+def letterWithElements(letter,states):
+    letter= {
+        letter: states
+    }
+
+    return letter
+
+def getFinalState(processor):
+    finalStates =[]
+    for finalState in processor:
+        if(finalState["initialNode"][ 'isFinalState'] == True  ):
+            finalStates.append(finalState["initialNode"][ 'name'])
+        if(finalState["finalNode"][ 'isFinalState'] == True):
+            finalStates.append(finalState["finalNode"][ 'name'])
+    finalStates = list(dict.fromkeys(finalStates))
+
+    return finalStates
+
+
+def createNdfaNodeStructure(processor, language):
+
+    listNewStates = []                         
+    finiteAutomaton = {} 
+    nfa_final_state = getFinalState(processor)
+    fullDictionary ={}
+
+    for state in nodesList:
+        finalNode = {}
+        node = []
+        for letter in language:
+            statesInLetter= []
+            for getStates in processor:
+                if (state['name'] == getStates['initialNode']['name'] and getStates['chars'][0] == letter):
+                    statesInLetter.append(getStates['finalNode']['name'][1])
+            node = letterWithElements(letter, statesInLetter)[letter]
+            finalNode.update({letter: node})
+        fullDictionary.update(nodeNdfaToDfa(state['name'][1], finalNode))
+    newStatesList = list(list(fullDictionary.keys())[0]) 
+
+    finiteAutomaton[newStatesList[0]] = {}                       
+    for nodeNumber in range(len(language)):
+        joinStates = "".join(fullDictionary[newStatesList[0]][language[nodeNumber]])   
+        finiteAutomaton[newStatesList[0]][language[nodeNumber]] = joinStates            
+        if joinStates not in newStatesList:                          
+            listNewStates.append(joinStates)                  
+            newStatesList.append(joinStates)                        
+
+    while len(listNewStates) != 0:                     
+        finiteAutomaton[listNewStates[0]] = {}                     
+        for nodeNumber in range(len(listNewStates[0])):
+            for letterNumber in range(len(language)):
+                temporalValue = []                                
+                for checkNode in range(len(listNewStates[0])):
+                    temporalValue += fullDictionary[listNewStates[0][checkNode]][language[letterNumber]]  
+                noReference = ""
+                noReference = noReference.join(temporalValue)                         
+                if noReference not in newStatesList:                   
+                    listNewStates.append(noReference)           
+                    newStatesList.append(noReference)                
+                finiteAutomaton[listNewStates[0]][language[letterNumber]] = noReference  
+            
+        listNewStates.remove(listNewStates[0])       
+
+                                        
+    return finiteAutomaton
+
+ 
 
 def convertToDFA(language, processor, nodesList):
     if("l" in language):
@@ -231,9 +304,12 @@ def convertToDFA(language, processor, nodesList):
     else:
         print("NDFA")
         printTable(language, processor, nodesList)
-        #Convert to DFA below
         
         
+        print("DFA")
+        dfa =createNdfaNodeStructure(processor, language)
+        print(dfa)
+
         
         
 
