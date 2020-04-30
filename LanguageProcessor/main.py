@@ -1,5 +1,5 @@
 from tabulate import tabulate
-textFile = 'textfiles/test3.txt'
+textFile = 'textfiles/test5.txt'
 
 def readNodes(line):
     global nodesList
@@ -193,19 +193,20 @@ def convertToNDFA(language, processor, nodesList):
         for node in nodesList:
             childNodes = []
             lambdaNodes = processACharachterNDFA(node, 'l', processor)
-            if lambdaNodes:
-                for child in lambdaNodes:
-                    if child['isFinalState'] and node['isInitialState']:
-                        nodesList[searchNodeIndex(node, nodesList)]['isFinalState'] = True
-                        node['isFinalState'] = True
-                    if child not in childNodes:
-                        childNodes.append(child)
-            thisCharNodes = processACharachterNDFA(node, char, processor)
+            lambdaNodes.append(node)
+            thisCharNodes = []
+            for child in lambdaNodes:
+                if child['isFinalState'] and node['isInitialState']:
+                    nodesList[searchNodeIndex(node, nodesList)]['isFinalState'] = True
+                    node['isFinalState'] = True
+                charCheck = processACharachterNDFA(child, char, processor)
+                for charChild in charCheck:
+                    thisCharNodes.append(charChild)
             for newChild in thisCharNodes:
                 if newChild not in childNodes:
-                    childNodes.append(newChild)          
+                    childNodes.append(newChild) 
             for child in childNodes:
-                lambdaCharNodes = processACharachterNDFA(child, char, processor)
+                lambdaCharNodes = processACharachterNDFA(child, 'l', processor)
                 for newChild in lambdaCharNodes:
                     if newChild not in childNodes:
                         childNodes.append(newChild)
